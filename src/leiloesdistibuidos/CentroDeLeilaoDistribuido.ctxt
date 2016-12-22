@@ -1,0 +1,18 @@
+#BlueJ class context
+comment0.params=
+comment0.target=CentroDeLeilaoDistribuido()
+comment0.text=\r\n\ Constructor\ for\ objects\ of\ class\ CentroDeLeilaoDistribuido\r\n
+comment1.params=l
+comment1.target=CentroDeLeilaoDistribuido(java.util.Map)
+comment2.params=idLeilao\ valor
+comment2.target=void\ licitar(int,\ double)
+comment2.text=\r\n\ Os\ potenciais\ compradores\ podem\ licitar\ o\ item\ indicando\ o\ \r\n\ n\u00FAmero\ de\ leil\u00E3o\ e\ um\ valor\ em\ euros.\r\n\ O\ metodo\ nao\ \u00E9\ sinchronizado\ porque\ o\ acesso\ ao\ centro\r\n\ nao\ tem\ que\ ser\ limitado.\ O\ acesso\ ao\ leilao\ sim.\r\n\ \r\n
+comment3.params=l
+comment3.target=void\ registarLeilao(Leilao)
+comment3.text=\r\n\ Criar\ um\ leilao.\ Diferentes\ versoes\ desta\ funcao\ pode\ ser\ feita.\r\n\ A\ versao\ aqui\ apresentada\ recebe\ um\ leilao\ prefeito.\r\n\ Enquanto\ o\ leilao\ nao\ esta\ registado\ este\ nao\ esta\ disponivel.\r\n\ logo\ nao\ deve\ ser\ necessario\ o\ metodo\ ser\ synchronized.\r\n
+comment4.params=descricao\ valorInicial\ vendedor
+comment4.target=int\ createLeilao(java.lang.String,\ float,\ Utilizador)
+comment5.params=
+comment5.target=java.util.Map\ leiloesEmCurso()
+comment5.text=\r\n\ Implementacao\ da\ hipotese\ 2.\r\n
+numComments=6

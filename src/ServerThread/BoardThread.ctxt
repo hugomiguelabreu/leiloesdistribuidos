@@ -1,0 +1,6 @@
+#BlueJ class context
+comment0.params=paramS\ utilizadoresParam
+comment0.target=BoardThread(java.net.Socket,\ java.util.Map)
+comment1.params=
+comment1.target=void\ run()
+numComments=2

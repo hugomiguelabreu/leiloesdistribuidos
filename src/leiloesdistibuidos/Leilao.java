@@ -10,16 +10,19 @@ package leiloesdistibuidos;
  * @author markerstone
  */
 public class Leilao {
-    
+    //  Deve ser indicada uma descrição do item a leiloar, e o sistema deve atribuir um
+    //  número único a cada leilão, devolvendo esse número ao iniciador.
     private float valor;
     private String descricao;
     private int uniqueId;
     private Utilizador vendedor;
+    private boolean ativo;
     
     public Leilao(float valorInicial, String descricao, Utilizador vendedor){
         this.valor = valorInicial;
         this.descricao = descricao;
         this.vendedor = vendedor;
+        ativo = true;
     }
     
     public float getValor(){
@@ -32,6 +35,10 @@ public class Leilao {
     
     public int getId(){
         return this.uniqueId;
+    }
+    
+    public boolean isAtivo(){
+        return ativo;
     }
     
 }

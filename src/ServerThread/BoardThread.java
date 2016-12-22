@@ -23,7 +23,7 @@ public class BoardThread {
     Socket clientSocket;
     Map<String, Utilizador> utilizadores;
     
-    public BoardThread(Socket paramS, Map utilizadoresParam){
+    public BoardThread(Socket paramS, Map<String, Utilizador> utilizadoresParam){
         clientSocket = paramS;
         utilizadores = utilizadoresParam;
     }

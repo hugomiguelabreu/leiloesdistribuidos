@@ -35,7 +35,8 @@ public class Servidor {
         File file = new File("utilizadores.ld");
         
         //Inicia o HashMap de Utilizadores
-        utilizadores = new HashMap<>();
+        utilizadores = new HashMap<String, Utilizador>();// Modificado por victor, Precisei o tipo de chave
+          // e objecto guardado no HashMap.
         //Verifica se existe o ficheiro que contÃ©m os utilizadores
         if(file.exists())
             utilizadores = (HashMap<String,Utilizador>)rd.readFromFile("utilizadores.ld");
@@ -45,7 +46,8 @@ public class Servidor {
         //Inicia o seridor na porta 8080
         s = new ServerSocket(8080);
         //Espera pelos clientes
-        while((c=s.accept())!=null){
+        while((c=s.accept())!=null){//O servidor fica a espera até obter um cliente.
+            // O servidor nunca para de esperar. accept bloqueia até obter um cliente
             //Inicia uma Thread para um cliente
             sThread = new ServerThread(c, utilizadores);
             sThread.start();
