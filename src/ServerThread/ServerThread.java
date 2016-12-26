@@ -120,11 +120,13 @@ public class ServerThread extends Thread {
         switch(opt){
             case 1:
                 for(Leilao leiAux : leiloes.values()){
-                    writeToClient.println("__________________________________________________________________________");
-                    writeToClient.println("[" + leiAux.getId() + "] " + leiAux.getDesc() + " -> " + leiAux.getValor() + "€ " 
+                    if(leiAux.getEstado()==true){
+                        writeToClient.println("__________________________________________________________________________");
+                        writeToClient.println("[" + leiAux.getId() + "] " + leiAux.getDesc() + " -> " + leiAux.getValor() + "€ " 
                             + (leiAux.getVendedor().getUsername().equals(
                                     this.user.getUsername()) ? " (*)" : ((leiAux.getMelhorLicitador() != null) && (leiAux.getMelhorLicitador().equals(
                                             this.user.getUsername())) ? " (+)" : "")));
+                    }
                 }
                 writeToClient.println("__________________________________________________________________________");
                 break;
