@@ -1,6 +1,0 @@
-#BlueJ class context
-comment0.params=mapParam
-comment0.target=Write(java.util.Map)
-comment1.params=fileName
-comment1.target=boolean\ writeToFile(java.lang.String)
-numComments=2

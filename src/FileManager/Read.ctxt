@@ -1,6 +1,0 @@
-#BlueJ class context
-comment0.params=
-comment0.target=Read()
-comment1.params=fileName
-comment1.target=java.lang.Object\ readFromFile(java.lang.String)
-numComments=2

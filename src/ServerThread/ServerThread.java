@@ -30,9 +30,8 @@ public class ServerThread extends Thread {
     
     /*
     * Construtor da classe
-    * Mudado por vitor. Puz String, Utilizador como definicao do map.
     */
-    public ServerThread(Socket paramS, Map<String,Utilizador> utilizadoresParam) throws IOException{
+    public ServerThread(Socket paramS, Map utilizadoresParam) throws IOException{
         clientSocket = paramS;
         utilizadores = utilizadoresParam;
         userLoggedIn = false;
@@ -47,18 +46,14 @@ public class ServerThread extends Thread {
     public void run(){
         String m = null;
         try {
-            // Mostra o menu de login ao cliente.
             this.imprimeMenu();
             while((m=readFromClient.readLine())!=null){
-                // 2 tipos de menus disponibilizados.
-                //1º) Log In
                 if(!userLoggedIn)
-                    loggedOutInterpreter(Integer.getInteger(m));// getInteger possui uma excepçao.
-                else // 2º) Acçoes especificas de um utilizador do sistema.
-                    loggedInInterpreter(Integer.getInteger(m));// getInteger possui uma excepçao.
+                    loggedOutInterpreter(Integer.getInteger(m));
+                else
+                    loggedInInterpreter(Integer.getInteger(m));
                 this.imprimeMenu();
             }
-            // Fecha-se o socket porque o cliente saiu.
             clientSocket.close();
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -67,7 +62,7 @@ public class ServerThread extends Thread {
     }
     
     public void imprimeMenu(){
-        // O utlizador pode registar-se, efectuar login ou sair se ainda nao fez o login
+        
         if(!userLoggedIn){
             writeToClient.println("[1]Registar utilizador");
             writeToClient.println("[2]Efetuar login");
@@ -77,7 +72,6 @@ public class ServerThread extends Thread {
         }
         writeToClient.println("[9]Sair");
     }
-    
     /*
     *Intrepertador para menu de utilizador nÃ£o logado
     */
