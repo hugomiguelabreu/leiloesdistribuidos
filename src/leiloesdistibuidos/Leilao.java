@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package leiloesdistibuidos;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +13,10 @@ import java.util.UUID;
  *
  * @author markerstone
  */
-public class Leilao implements Serializable{
-    
-    private float valor;
+public class Leilao {
+    //  Deve ser indicada uma descrição do item a leiloar, e o sistema deve atribuir um
+    //  número único a cada leilão, devolvendo esse número ao iniciador.
+    private double valor;
     private String descricao;
     private String uniqueId;
     private Utilizador vendedor;
@@ -24,7 +24,7 @@ public class Leilao implements Serializable{
     private boolean estado;
     private Map<String, Utilizador> licitadores;
     
-    public Leilao(float valorInicial, String descricao, Utilizador vendedor){
+    public Leilao(double valorInicial, String descricao, Utilizador vendedor){
         this.valor = valorInicial;
         this.descricao = descricao;
         this.vendedor = vendedor;
@@ -33,7 +33,7 @@ public class Leilao implements Serializable{
         licitadores = new HashMap<>();
     }
     
-    public float getValor(){
+    public double getValor(){
         return this.valor;
     }
     
@@ -57,7 +57,7 @@ public class Leilao implements Serializable{
         return this.melhorLicitador;
     }
     
-    public boolean licita(float valor, Utilizador user){
+    public boolean licita(double valor, Utilizador user){
         synchronized(this){
             if(this.valor >= valor){
                 return false;
@@ -75,4 +75,5 @@ public class Leilao implements Serializable{
         this.estado = false;
         //Fazer as notificaÃ§Ãµes // COMO?????
     }
+    
 }

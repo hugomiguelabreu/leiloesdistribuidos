@@ -17,8 +17,8 @@ public class Utilizador implements Serializable{
     private String username;
     private String password;
     private boolean tipo;
+    /* Conjunto de leiloes que o utilizador licitou*/
     private Map<String, Leilao> leiloes;
-    
     public Utilizador(String usernameParam, String passwordParam, boolean tipoParam){
         username = usernameParam;
         password = passwordParam;
@@ -26,10 +26,11 @@ public class Utilizador implements Serializable{
         leiloes = new HashMap<>();
     }
     
-    public Utilizador(Utilizador u){
+     public Utilizador(Utilizador u){
         username = u.getUsername();
         password = u.getPassword();
         tipo = u.getTipo();
+        leiloes = u.getLeiloes();
     }
     
     public String getUsername(){
@@ -47,6 +48,10 @@ public class Utilizador implements Serializable{
         return this.password;
     }
     
+    public Map<String,Leilao> getLeiloes(){
+        return new HashMap<String,Leilao>(leiloes);
+    }
+    
     public void setPassword(String passwordParam){
         password = passwordParam;
     }
@@ -58,8 +63,7 @@ public class Utilizador implements Serializable{
         }
     }
     
-    public Utilizador clone(){
+     public Utilizador clone(){
         return new Utilizador(this);
     }
-    
 }
