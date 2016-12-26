@@ -6,6 +6,8 @@
 package leiloesdistibuidos;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -14,19 +16,30 @@ import java.io.Serializable;
 public class Utilizador implements Serializable{
     private String username;
     private String password;
-    private String tipo;
+    private boolean tipo;
+    private Map<String, Leilao> leiloes;
     
-    public Utilizador(String usernameParam, String passwordParam, String tipoParam){
+    public Utilizador(String usernameParam, String passwordParam, boolean tipoParam){
         username = usernameParam;
         password = passwordParam;
         tipo = tipoParam;
+        leiloes = new HashMap<>();
+    }
+    
+    public Utilizador(Utilizador u){
+        username = u.getUsername();
+        password = u.getPassword();
+        tipo = u.getTipo();
     }
     
     public String getUsername(){
         return this.username;
     }
-    
-    public String getTipo(){
+    /*
+    * True para comprador
+    * False Vendedor
+    */
+    public boolean getTipo(){
         return this.tipo;
     }
 
@@ -36,6 +49,17 @@ public class Utilizador implements Serializable{
     
     public void setPassword(String passwordParam){
         password = passwordParam;
+    }
+    
+    public void addLeilao(Leilao leiAux){
+        synchronized(this){
+            if(!this.leiloes.containsKey(leiAux.getId()))
+                this.leiloes.put(leiAux.getId(), leiAux);
+        }
+    }
+    
+    public Utilizador clone(){
+        return new Utilizador(this);
     }
     
 }

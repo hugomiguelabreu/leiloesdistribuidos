@@ -22,7 +22,8 @@ import java.util.Map;
 public class Servidor {
     
     private static Map<String, Utilizador> utilizadores;
-    
+    private static Map<String, Leilao> leiloes;
+
     /**
      * Função main do servidor
      * @param args the command line arguments
@@ -32,22 +33,26 @@ public class Servidor {
         Socket c;
         ServerThread sThread;
         Read rd = new Read();
-        File file = new File("utilizadores.ld");
+        File fileUsers = new File("utilizadores.ld");
+        File fileLeiloes = new File("leiloes.ld");
         
-        //Inicia o HashMap de Utilizadores
+        //Inicia os HashMaps
         utilizadores = new HashMap<>();
+        leiloes = new HashMap<>();
+
         //Verifica se existe o ficheiro que contém os utilizadores
-        if(file.exists())
+        if(fileUsers.exists())
             utilizadores = (HashMap<String,Utilizador>)rd.readFromFile("utilizadores.ld");
-        for(Utilizador us:utilizadores.values())
-            System.out.println(us.getUsername());
+        //Verifica se existe o ficheiro que contém os leiloes
+        if(fileLeiloes.exists())
+            leiloes = (HashMap<String,Leilao>)rd.readFromFile("leiloes.ld");
         
-        //Inicia o seridor na porta 8080
-        s = new ServerSocket(8080);
+        //Inicia o seridor na porta 6063
+        s = new ServerSocket(6063);
         //Espera pelos clientes
         while((c=s.accept())!=null){
             //Inicia uma Thread para um cliente
-            sThread = new ServerThread(c, utilizadores);
+            sThread = new ServerThread(c, utilizadores, leiloes);
             sThread.start();
         }
         s.close();

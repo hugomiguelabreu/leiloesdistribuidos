@@ -5,21 +5,32 @@
  */
 package leiloesdistibuidos;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 /**
  *
  * @author markerstone
  */
-public class Leilao {
+public class Leilao implements Serializable{
     
     private float valor;
     private String descricao;
-    private int uniqueId;
+    private String uniqueId;
     private Utilizador vendedor;
+    private Utilizador melhorLicitador;
+    private boolean estado;
+    private Map<String, Utilizador> licitadores;
     
     public Leilao(float valorInicial, String descricao, Utilizador vendedor){
         this.valor = valorInicial;
         this.descricao = descricao;
         this.vendedor = vendedor;
+        this.estado = true;
+        this.uniqueId = UUID.randomUUID().toString();
+        licitadores = new HashMap<>();
     }
     
     public float getValor(){
@@ -30,8 +41,38 @@ public class Leilao {
         return this.descricao;
     }
     
-    public int getId(){
+    public String getId(){
         return this.uniqueId;
     }
     
+    public Utilizador getVendedor(){
+        return this.vendedor.clone();
+    }
+    
+    public boolean getEstado(){
+        return this.estado;
+    }
+    
+    public Utilizador getMelhorLicitador(){
+        return this.melhorLicitador;
+    }
+    
+    public boolean licita(float valor, Utilizador user){
+        synchronized(this){
+            if(this.valor >= valor){
+                return false;
+            }else{
+                if(!this.licitadores.containsKey(user.getUsername()))
+                    this.licitadores.put(user.getUsername(), user);
+                this.valor = valor;
+                this.melhorLicitador = user;
+                return true;
+            }
+        }
+    }
+    
+    public void fechaLeilao(){
+        this.estado = false;
+        //Fazer as notificações // COMO?????
+    }
 }
