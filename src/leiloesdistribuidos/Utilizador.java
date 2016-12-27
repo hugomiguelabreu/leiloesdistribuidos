@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package leiloesdistibuidos;
+package leiloesdistribuidos;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -60,6 +60,15 @@ public class Utilizador implements Serializable{
     
     public Utilizador clone(){
         return new Utilizador(this);
+    }
+    
+    public boolean equals(Utilizador user){
+        if(user.getUsername().equals(this.getUsername()) &&
+                user.getPassword().equals(this.getPassword()) &&
+                    user.getTipo() == this.getTipo())
+            return true;
+        else
+            return false;
     }
     
 }

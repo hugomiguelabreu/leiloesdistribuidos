@@ -5,17 +5,17 @@
  */
 package ServerThread;
 
-import FileManager.Write;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import leiloesdistibuidos.Leilao;
-import leiloesdistibuidos.Utilizador;
+import leiloesdistribuidos.Leilao;
+import leiloesdistribuidos.LeiloesDistribuidos;
+import leiloesdistribuidos.Utilizador;
 
 /**
  *
@@ -26,21 +26,17 @@ public class ServerThread extends Thread {
     private InputStreamReader k;
     private BufferedReader readFromClient;
     private PrintWriter writeToClient;
-    private Map<String, Utilizador> utilizadores;
-    private Map<String, Leilao> leiloes;
     private boolean userLoggedIn;
     private Utilizador user;
+    private LeiloesDistribuidos ld;
     
     /*
     * Construtor da classe
     */
-    public ServerThread(Socket paramS, Map utilizadoresParam, Map leiloesParam) throws IOException{
+    public ServerThread(Socket paramS, LeiloesDistribuidos ld) throws IOException{
         clientSocket = paramS;
-        //Guarda os apontadores para os maps (ou seja a base de dados em memoria
-        utilizadores = utilizadoresParam;
-        leiloes = leiloesParam;
         userLoggedIn = false;
-        
+        this.ld = ld;
         k = new InputStreamReader(this.clientSocket.getInputStream());
         //Cria o canal de leitura do cliente
         readFromClient = new BufferedReader(k);
@@ -61,6 +57,8 @@ public class ServerThread extends Thread {
             }
             clientSocket.close();
         } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         
@@ -87,7 +85,7 @@ public class ServerThread extends Thread {
     /*
     *Intrepertador para menu de utilizador não logado
     */
-    public void loggedOutInterpreter(int opt) throws IOException{
+    public void loggedOutInterpreter(int opt) throws IOException, InterruptedException{
         switch(opt){
             case 1:
                 writeToClient.println("Username:");
@@ -116,22 +114,22 @@ public class ServerThread extends Thread {
     /*
     * Intrepertador para o menu de utilizador logado
     */
-    public void loggedInInterpreter(int opt) throws IOException{
+    public void loggedInInterpreter(int opt) throws IOException, InterruptedException{
         switch(opt){
             case 1:
-                for(Leilao leiAux : leiloes.values()){
-                    if(leiAux.getEstado()==true){
+                ArrayList<Leilao> leiloes = ld.getLeiloes();
+                for(int i = 0; i<leiloes.size(); i++){
+                    if(leiloes.get(i).getEstado()==true){
                         writeToClient.println("__________________________________________________________________________");
-                        writeToClient.println("[" + leiAux.getId() + "] " + leiAux.getDesc() + " -> " + leiAux.getValor() + "€ " 
-                            + (leiAux.getVendedor().getUsername().equals(
-                                    this.user.getUsername()) ? " (*)" : ((leiAux.getMelhorLicitador() != null) && (leiAux.getMelhorLicitador().equals(
-                                            this.user.getUsername())) ? " (+)" : "")));
+                        writeToClient.println("[" + leiloes.get(i).getId() + "] " + leiloes.get(i).getDesc() + " -> " + leiloes.get(i).getValor() + "€ " 
+                            + (leiloes.get(i).getVendedor().equals(this.user) ? " (*)" : ((leiloes.get(i).getMelhorLicitador() != null) && 
+                                        (leiloes.get(i).getMelhorLicitador().equals(this.user)) ? " (+)" : "")));
                     }
                 }
                 writeToClient.println("__________________________________________________________________________");
                 break;
             case 2:
-                if(this.userLoggedIn){
+                if(!this.user.getTipo()){
                     writeToClient.println("Descrição:");
                     String descLeilao = readFromClient.readLine();
                     writeToClient.println("Valor:");
@@ -141,11 +139,29 @@ public class ServerThread extends Thread {
                 }else{
                     writeToClient.println("Id do leilão:");
                     String idLeilao = readFromClient.readLine();
-                    Leilao leiAux = leiloes.get(idLeilao);
-                    writeToClient.println("O valor atual do leilão é: " + leiAux.getValor());
-                    writeToClient.println("Licitação:");
-                    float valLicit = Float.parseFloat(readFromClient.readLine());
-                    writeToClient.println((this.licitaLeilao(leiAux, valLicit)) ? "Licitação sucedida" : "Licitação inválida");
+                    if(ld.existeLeilao(idLeilao)){
+                        Leilao leiAux = ld.getLeilao(idLeilao);
+                        if(leiAux.getEstado()){
+                            writeToClient.println("O valor atual do leilão é: " + leiAux.getValor());
+                            writeToClient.println("Licitação:");
+                            float valLicit = Float.parseFloat(readFromClient.readLine());
+                            writeToClient.println((this.licitaLeilao(leiAux, valLicit)) ? "Licitação sucedida" : "Licitação inválida");
+                        }
+                    }else{
+                        writeToClient.println("O leilão não existe ou já terminou");
+                    }
+                }
+                break;
+            case 3:
+                if(!this.user.getTipo()){
+                    writeToClient.println("Id do leilão a fechar:");
+                    String idLei = readFromClient.readLine();
+                    if(ld.existeLeilao(idLei)){
+                        Leilao aLei = ld.getLeilao(idLei);
+                        ld.fechaLeilao(aLei, this.user);
+                    }else{
+                        writeToClient.println("Leilão inexistente.");
+                    }
                 }
                 break;
             case 7:
@@ -158,101 +174,95 @@ public class ServerThread extends Thread {
     }
     
     /*
+    * Função para registar um utilizador no sistema
+    */
+    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException, InterruptedException{
+        return ld.registaUtilizador(username, password, tipo);
+    }
+    
+    /*
     * Função para fazer o login de um utilizador no sistema (Aqui pode executar concorrentemente
     */
-    public boolean loginUtilizador(String username, String password){
-        Utilizador userAux;
-        boolean resultado = false;
-        //Verifica se o utilizador e password estão corretos   
-        if(utilizadores.containsKey(username)){
-           userAux = utilizadores.get(username);
-           //Verifica se a password é correta
-           if(userAux.getPassword().equals(password)){
-                this.user = userAux;
-                this.userLoggedIn = true;
-                resultado = true;
-            }
+    public boolean loginUtilizador(String username, String password) throws InterruptedException, IOException{
+        boolean resultado=false;
+        if(ld.loginUtilizador(username, password, clientSocket)){
+            this.userLoggedIn = true;
+            this.user = ld.getUtilizador(username);
+            resultado = true;
         }
         return resultado;
     }
+    
     /*
     * Faz o logout do utilizador
     */
+    public boolean logoutUtilizador(){
+        if(ld.logoutUtilizador(this.user))
+            userLoggedIn = false;
+        return true;
+    }
+    
+    public Leilao criaLeilao(float value, String desc) throws IOException{
+        return ld.criaLeilao(value, desc, this.user);
+    }
+
+    public boolean licitaLeilao(Leilao leiA, float value) throws InterruptedException{
+        return ld.licitaLeilao(leiA, value, this.user);
+    }
+}
+
+/*
+    public boolean loginUtilizador(String username, String password) throws InterruptedException{
+        Utilizador userAux;
+        boolean resultado = false;
+        //Verifica se o utilizador e password estão corretos  
+        lock.lock();
+            try{
+                while(isLocked)
+                    reading.await();
+                isLocked = true;
+                if(utilizadores.containsKey(username)){
+                   userAux = utilizadores.get(username);
+                   //Verifica se a password é correta
+                   if(userAux.getPassword().equals(password)){
+                        this.user = userAux;
+                        this.userLoggedIn = true;
+                        resultado = true;
+                    }
+                }
+                isLocked = false;
+                writing.signalAll(); // Aqui só acorda 1 pois só 1 escreve de cada vez
+            } finally{
+                lock.unlock();
+            }
+        return resultado;
+    }
     public boolean logoutUtilizador(){
         if(userLoggedIn)
             userLoggedIn = false;
         return true;
     }
-    
-    /*
-    * Função para registar um utilizador no sistema
-    */
-    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException{
+    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException, InterruptedException{
         boolean resultado=false;
         //Verifica se o utilizador já existe
         if(!utilizadores.containsKey(username)){
             //Cria o utilizador
             Utilizador user = new Utilizador(username, password, tipo);
             //Acesso único ao map para poder adicionar o utilizador
-            synchronized(utilizadores){
+            lock.lock();
+            try{
+                while(isLocked)
+                    writing.await();
+                isLocked = true;
                 utilizadores.put(username, user);
+                Thread.sleep(3000);
+                isLocked=false;
+                reading.signalAll();
+            } finally{
+                lock.unlock();
             }
         }
         
         return resultado;
     }
-
-    /*
-    * Função para registar um leilao no sistema
-    */
-    public Leilao criaLeilao(float value, String desc) throws IOException{
-        
-        //Cria o utilizador
-        Leilao leilaoAux = new Leilao(value, desc, this.user);
-        //Acesso único ao map para poder adicionar o utilizador
-        synchronized(leiloes){
-            leiloes.put(leilaoAux.getId(), leilaoAux);
-        }
-        
-        return leilaoAux;
-    }
-    
-    /*
-    * Função para licitar em leilão
-    */
-    
-    public boolean licitaLeilao(Leilao leiA, float value){
-        boolean resultado = false;
-        resultado = leiA.licita(value, this.user);
-        if(resultado)
-            this.user.addLeilao(leiA);
-        return resultado;
-    }
-    
-    /*
-    * Função para presistir a "base de dados" de utilizadores num ficheiro
-    */
-    public boolean presisteUtilizadores() throws IOException{
-        //Acesso único ao map
-        synchronized(utilizadores){
-            Write writer = new Write(utilizadores);
-            //Escreve para um ficheiro os utilizadores
-            writer.writeToFile("utilizadores.ld");
-        }
-        return true;
-    }
-    
-    /*
-    * Função para presistir a "base de dados" de utilizadores num ficheiro
-    */
-    public boolean presisteLeiloes() throws IOException{
-        //Acesso único ao map
-        synchronized(leiloes){
-            Write writer = new Write(leiloes);
-            //Escreve para um ficheiro os utilizadores
-            writer.writeToFile("leiloes.ld");
-        }
-        return true;
-    }
-
-}
+*/
