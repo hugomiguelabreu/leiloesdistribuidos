@@ -32,7 +32,7 @@ public class Servidor {
         
         ld = new LeiloesDistribuidos();
         //Inicia o seridor na porta 6063
-        s = new ServerSocket(6063);
+        s = new ServerSocket(6062);
         //Espera pelos clientes
         while((c=s.accept())!=null){
             //Inicia uma Thread para um cliente

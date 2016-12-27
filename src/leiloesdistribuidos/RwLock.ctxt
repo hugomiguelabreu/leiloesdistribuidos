@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.params=
+comment0.target=RwLock()
+comment1.params=
+comment1.target=void\ readLock()
+comment2.params=
+comment2.target=void\ readUnlock()
+comment3.params=
+comment3.target=void\ writeLock()
+comment4.params=
+comment4.target=void\ writeUnlock()
+numComments=5
