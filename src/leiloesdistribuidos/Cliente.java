@@ -15,15 +15,19 @@ import java.io.IOException;
  * @author markerstone
  */
 public class Cliente {
-    private Socket s = null;
+    /*
+    *private Socket s = null;
     private ClienteReadThread crt = null;
     private final int port = 6062;
     
     public Cliente(){
     }
+    */
     
-    
-    public void main(String[] args){
+    public static void main(String[] args){
+        Socket s = null;
+        ClienteReadThread crt = null;
+        int port = 6062;
         /* Tenta estabelecer uma conexao com o servidor*/
         try{
             s = new Socket("localhost",port);
