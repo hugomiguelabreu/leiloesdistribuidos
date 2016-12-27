@@ -1,8 +1,0 @@
-#BlueJ class context
-comment0.params=
-comment0.target=BoardThreads()
-comment1.params=paramS\ u
-comment1.target=BoardThreads(java.net.Socket,\ leiloesdistibuidos.Utilizador)
-comment2.params=
-comment2.target=void\ run()
-numComments=3
