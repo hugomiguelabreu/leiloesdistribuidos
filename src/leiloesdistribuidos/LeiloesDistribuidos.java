@@ -25,7 +25,7 @@ public class LeiloesDistribuidos {
     private static Map<String, Utilizador> utilizadores;
     private static Map<String, Leilao> leiloes;
     private RwLock lock = new RwLock();
-    private Map<Utilizador, BoardThread> quadroMensagens;
+    private Map<String, BoardThread> quadroMensagens;
     
     
     public LeiloesDistribuidos() throws IOException, FileNotFoundException, ClassNotFoundException{
@@ -49,20 +49,73 @@ public class LeiloesDistribuidos {
     /*
     * Verifica se o utilizador existe
     */
-    public boolean existeUtilizador(String username){
-        return this.utilizadores.containsKey(username);
+    public boolean existeUtilizador(String username) throws InterruptedException{
+        boolean res = false;
+        lock.readLock();
+        res = this.utilizadores.containsKey(username);
+        lock.readUnlock();
+        return res;
     }
     
     /*
-    * Devolve o utilizador com o dado username
+    * Devolve o utilizador com o dado username --- TEM DE SER SYNCHRONIZED???
     */
-    public Utilizador getUtilizador(String username){
+    public Utilizador getUtilizador(String username) throws InterruptedException{
+        Utilizador res = null;
+        lock.readLock();
         if(this.utilizadores.containsKey(username))
-            return this.utilizadores.get(username);
-        else
-            return null;
+            res = this.utilizadores.get(username).clone();
+        lock.readUnlock();
+        return res;
     }
     
+    /*
+    * Função para fazer o login de um utilizador no sistema (Aqui pode executar concorrentemente
+    */
+    public boolean loginUtilizador(String username, String password, Socket c) throws InterruptedException, IOException{
+        Utilizador userAux;
+        boolean resultado = false;
+        lock.readLock();
+        //Verifica se o utilizador e password estão corretos   
+        if(utilizadores.containsKey(username)){
+           userAux = utilizadores.get(username);
+           //Verifica se a password é correta
+           if(userAux.getPassword().equals(password)){
+                resultado = true;
+                BoardThread bt = new BoardThread(c);
+                quadroMensagens.put(userAux.getUsername(), bt);
+                bt.start();
+            }
+        }
+        lock.readUnlock();
+        
+        return resultado;
+    }
+    
+    public boolean logoutUtilizador(Utilizador user){
+        quadroMensagens.get(user.getUsername()).interrupt();
+        quadroMensagens.remove(user);
+        return true;
+    }
+    
+    /*
+    * Função para registar um utilizador no sistema
+    */
+    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException, InterruptedException{
+        boolean resultado=false;
+        //Verifica se o utilizador já existe
+        lock.writeLock();
+        if(!utilizadores.containsKey(username)){
+            //Cria o utilizador
+            Utilizador user = new Utilizador(username, password, tipo);
+            //Acesso único ao map para poder adicionar o utilizador
+            utilizadores.put(username, user);
+            resultado = true;
+        }
+        lock.writeUnlock();
+        return resultado;
+    }
+
     /*
     * Devolve uma lista com os leiloes
     */
@@ -88,52 +141,6 @@ public class LeiloesDistribuidos {
     }
     
     /*
-    * Função para fazer o login de um utilizador no sistema (Aqui pode executar concorrentemente
-    */
-    public boolean loginUtilizador(String username, String password, Socket c) throws InterruptedException, IOException{
-        Utilizador userAux;
-        boolean resultado = false;
-        lock.readLock();
-        //Verifica se o utilizador e password estão corretos   
-        if(utilizadores.containsKey(username)){
-           userAux = utilizadores.get(username);
-           //Verifica se a password é correta
-           if(userAux.getPassword().equals(password)){
-                resultado = true;
-                BoardThread bt = new BoardThread(c);
-                quadroMensagens.put(userAux, bt);
-                bt.start();
-            }
-        }
-        lock.readUnlock();
-        
-        return resultado;
-    }
-    
-    public boolean logoutUtilizador(Utilizador user){
-        quadroMensagens.remove(user);
-        return true;
-    }
-    
-    /*
-    * Função para registar um utilizador no sistema
-    */
-    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException, InterruptedException{
-        boolean resultado=false;
-        //Verifica se o utilizador já existe
-        lock.writeLock();
-        if(!utilizadores.containsKey(username)){
-            //Cria o utilizador
-            Utilizador user = new Utilizador(username, password, tipo);
-            //Acesso único ao map para poder adicionar o utilizador
-            utilizadores.put(username, user);
-            resultado = true;
-        }
-        lock.writeUnlock();
-        return resultado;
-    }
-
-    /*
     * Função para registar um leilao no sistema
     */
     public Leilao criaLeilao(float value, String desc, Utilizador user) throws IOException{
@@ -155,23 +162,20 @@ public class LeiloesDistribuidos {
     public boolean licitaLeilao(Leilao leiA, float value, Utilizador user) throws InterruptedException{
         boolean resultado = false;
         resultado = leiA.licita(value, user);
-        if(resultado){
-            user.addLeilao(leiA);
-        }
         return resultado;
     }
     
     public boolean fechaLeilao(Leilao leiA, Utilizador user) throws InterruptedException{
         boolean resultado = false;
         ArrayList<Utilizador> licitadores;
-        int i = 0;
         if(leiA.getVendedor().equals(user)){
             leiA.fechaLeilao();
             licitadores = leiA.getLicitadores();
-            for(i = 0; i<licitadores.size();i++){
-                quadroMensagens.get(licitadores.get(i)).sethasMessages("O vencedor do leilao «" + leiA.getId() + "» foi [" + 
+            for(int i = 0; i<licitadores.size();i++){
+                System.out.println(licitadores.get(i).getUsername());
+                quadroMensagens.get(licitadores.get(i).getUsername()).sethasMessages("O vencedor do leilao «" + leiA.getId() + "» foi [" + 
                                     leiA.getMelhorLicitador().getUsername() + "] com licitação de *" + leiA.getValor() + "*");
-                quadroMensagens.get(licitadores.get(0)).acorda();
+                quadroMensagens.get(licitadores.get(i).getUsername()).acorda();
             }
         }
         

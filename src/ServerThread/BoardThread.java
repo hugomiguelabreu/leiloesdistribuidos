@@ -24,12 +24,8 @@ import leiloesdistribuidos.Utilizador;
 public class BoardThread extends Thread{
     
     private Socket clientSocket;
-    private InputStreamReader k;
-    private BufferedReader readFromClient;
     private PrintWriter writeToClient;
-    private Utilizador user;
     private Queue<String> messages;
-    private boolean fechaClient;
     
     /*
     * Construtor da classe

@@ -88,6 +88,7 @@ public class Leilao implements Serializable{
                     this.licitadores.put(user.getUsername(), user);
                 this.valor = valor;
                 this.melhorLicitador = user;
+                resultado = true;
             }
         lock.writeUnlock();
         return resultado;

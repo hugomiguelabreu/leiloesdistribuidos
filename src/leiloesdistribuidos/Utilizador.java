@@ -17,13 +17,11 @@ public class Utilizador implements Serializable{
     private String username;
     private String password;
     private boolean tipo;
-    private Map<String, Leilao> leiloes;
     
     public Utilizador(String usernameParam, String passwordParam, boolean tipoParam){
         username = usernameParam;
         password = passwordParam;
         tipo = tipoParam;
-        leiloes = new HashMap<>();
     }
     
     public Utilizador(Utilizador u){
@@ -49,13 +47,6 @@ public class Utilizador implements Serializable{
     
     public void setPassword(String passwordParam){
         password = passwordParam;
-    }
-    
-    public void addLeilao(Leilao leiAux){
-        synchronized(this){
-            if(!this.leiloes.containsKey(leiAux.getId()))
-                this.leiloes.put(leiAux.getId(), leiAux);
-        }
     }
     
     public Utilizador clone(){

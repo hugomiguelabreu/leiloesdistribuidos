@@ -49,12 +49,18 @@ public class ServerThread extends Thread {
         try {
             this.imprimeMenu();
             while((m=readFromClient.readLine())!=null){
-                if(!userLoggedIn)
-                    loggedOutInterpreter(Integer.parseInt(m));
-                else
-                    loggedInInterpreter(Integer.parseInt(m));
-                this.imprimeMenu();
+                try{
+                    if(!userLoggedIn)
+                        loggedOutInterpreter(Integer.parseInt(m));
+                    else
+                        loggedInInterpreter(Integer.parseInt(m));
+                    this.imprimeMenu();
+                } catch(NumberFormatException e) {
+                    writeToClient.println("Erro de input");; 
+                }
             }
+            if(userLoggedIn)
+                this.logoutUtilizador();
             clientSocket.close();
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -65,22 +71,24 @@ public class ServerThread extends Thread {
     }
     
     public void imprimeMenu(){
-        
+        writeToClient.println("--------------------------");        
         if(!userLoggedIn){
             //Menu para utilizador não logado
-            writeToClient.println("[1]Registar utilizador");
-            writeToClient.println("[2]Efetuar login");
+            writeToClient.println("|[1]Registar utilizador  |");
+            writeToClient.println("|[2]Efetuar login        |");
         }else{
             //Menu para utilizador logado
-            writeToClient.println("[1]Ver leilões em curso");
+            writeToClient.println("|[1]Ver leilões em curso |");
             if(!this.user.getTipo()){
-                writeToClient.println("[2]Criar leilão");
-                writeToClient.println("[3]Encerrar leilão");
+                writeToClient.println("|[2]Criar leilão         |");
+                writeToClient.println("|[3]Encerrar leilão      |");    
             }else{
-                writeToClient.println("[2]Licitar em leilão");
+                writeToClient.println("|[2]Licitar em leilão    |");
             }
-            writeToClient.println("[7]Logout");
+            writeToClient.println("|[7]Logout               |");
         }
+        writeToClient.println("|[9]Sair                 |");
+        writeToClient.println("--------------------------");
     }
     /*
     *Intrepertador para menu de utilizador não logado
@@ -103,7 +111,8 @@ public class ServerThread extends Thread {
                 String passwordLogin = readFromClient.readLine();
                 writeToClient.println((this.loginUtilizador(usernameLogin, passwordLogin) ? "Login efetuado com sucesso" : "Username ou password errados"));
                 break;
-            case 3:
+            case 9:
+                clientSocket.close();
                 break;
             default:
                 writeToClient.println("Opção inválida");
@@ -166,6 +175,9 @@ public class ServerThread extends Thread {
                 break;
             case 7:
                 writeToClient.println(this.logoutUtilizador() ? "Até breve!" : "Error!");
+                break;
+            case 9:
+                clientSocket.close();
                 break;
             default:
                 writeToClient.println("Opção inválida");
