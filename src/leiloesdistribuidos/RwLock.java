@@ -36,7 +36,7 @@ public class RwLock {
     
     public synchronized void writeLock() throws InterruptedException{
         iw++;
-        while(readers !=0 || writers !=0)
+        while(readers!=0 || writers!=0)
             wait();
         writers++;
         iw--;
