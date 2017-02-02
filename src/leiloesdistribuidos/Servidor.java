@@ -19,6 +19,9 @@ public class Servidor {
     /**
      * Função main do servidor
      * @param args the command line arguments
+     * @throws java.io.IOException
+     * @throws java.io.FileNotFoundException
+     * @throws java.lang.ClassNotFoundException
      */
     public static void main(String[] args) throws IOException, FileNotFoundException, ClassNotFoundException {
         ServerSocket s;
@@ -26,10 +29,11 @@ public class Servidor {
         ServerThread sThread;    
         LeiloesDistribuidos ld;
         
-        
+        //Inicia o centro de leilões;
         ld = new LeiloesDistribuidos();
         //Inicia o seridor na porta 6063
         s = new ServerSocket(6063);
+        System.out.println("Servidor de leilões iniciado.");
         //Espera pelos clientes
         while((c=s.accept())!=null){
             //Inicia uma Thread para um cliente

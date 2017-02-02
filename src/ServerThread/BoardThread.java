@@ -5,59 +5,60 @@
  */
 package ServerThread;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import leiloesdistribuidos.LeiloesDistribuidos;
 import leiloesdistribuidos.Utilizador;
 
 /**
  *
- * @author markerstone
+ * Esta é a Thread de mensagens, encarregue por entregar mensagens
+ * aos clients;
+ *
  */
 public class BoardThread extends Thread{
     
     private Socket clientSocket;
     private PrintWriter writeToClient;
-    private Queue<String> messages;
+    private Utilizador user;
+    
+    // Queue de mensagens a escrever para o cliente;
     
     /*
-    * Construtor da classe
+    * Construtor da classe BoardThread;
     */
-    public BoardThread(Socket paramS) throws IOException{
-        clientSocket = paramS;
-        messages = new LinkedList<String>();
+    public BoardThread(Socket paramS, Utilizador user) throws IOException{
+        this.user = user;
+        this.clientSocket = paramS;
         //Cria o canal de escrita para o cliente
-        writeToClient = new PrintWriter(clientSocket.getOutputStream(), true);
+        this.writeToClient = new PrintWriter(clientSocket.getOutputStream(), true);
     }
     
+    /**
+     * Função que corre a thread
+     */
+    @Override
     public synchronized void run(){
         try {
             while(clientSocket.isConnected()){
-                while(messages.isEmpty()){
+                //Caso a thread acorde do wait() e não tiver nada na queue para escrever
+                //volta a dormir;
+                while(!user.hasMessages()){
                     wait();
                 }
-                writeToClient.println(messages.remove());
+                //Escreve para o client a mensagem do topo da queue;
+                writeToClient.println(user.getMessage());
             }
             clientSocket.close();
             
-        } catch (InterruptedException ex) {
-            Logger.getLogger(BoardThread.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(BoardThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException | IOException ex) {
         }
     }
-    
-    public void sethasMessages(String s){
-        messages.add(s);
-    }
-    
+
+    /*
+    * Função que acorda todas as threads que estão a dormir;
+    * Quando esta função é chamada é porque existe mensagens para entregar;
+    */
     public synchronized void acorda(){
         notifyAll();
     }

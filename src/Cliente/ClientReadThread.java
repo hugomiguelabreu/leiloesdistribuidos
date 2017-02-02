@@ -7,8 +7,6 @@ package Cliente;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,13 +18,22 @@ public class ClientReadThread extends Thread{
     
     BufferedReader readFromServer;
     
+    /*
+    * Construtor da thread, que recebe o canal de leitura do servidor;
+    */
     public ClientReadThread(BufferedReader readFromServer) throws IOException{
         this.readFromServer = readFromServer;
     }
     
+    /**
+     * Função que corre quando a thread é iniciada;
+     * Esta função é a de leitura do canal do servidor;
+     */
+    @Override
     public void run(){
         String m;
         try {
+            //Lê do canal enquanto ouver algo para ler;
             while((m=readFromServer.readLine()) != null){
                 System.out.println(m);
             }

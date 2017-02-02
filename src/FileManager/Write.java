@@ -18,10 +18,16 @@ public class Write {
     
     Object dados;
     
-    public Write(Map mapParam){
+    /*
+    * Construtor da classe Writer que recebe o objeto genérico a escrever;
+    */
+    public Write(Object mapParam){
         dados = mapParam;
     }
     
+    /*
+    * Função que escreve um objeto genérico para um ficheiro;
+    */
     public boolean writeToFile(String fileName) throws FileNotFoundException, IOException{
         
         FileOutputStream fos = new FileOutputStream(fileName);

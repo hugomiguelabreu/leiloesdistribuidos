@@ -6,8 +6,8 @@
 package leiloesdistribuidos;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  *
@@ -17,11 +17,14 @@ public class Utilizador implements Serializable{
     private String username;
     private String password;
     private boolean tipo;
+    private Queue<String> messages;
+    private RwLock lock = new RwLock();
     
     public Utilizador(String usernameParam, String passwordParam, boolean tipoParam){
         username = usernameParam;
         password = passwordParam;
         tipo = tipoParam;
+        messages = new LinkedList<>();
     }
     
     public Utilizador(Utilizador u){
@@ -33,6 +36,7 @@ public class Utilizador implements Serializable{
     public String getUsername(){
         return this.username;
     }
+    
     /*
     * True para comprador
     * False Vendedor
@@ -45,8 +49,35 @@ public class Utilizador implements Serializable{
         return this.password;
     }
     
-    public void setPassword(String passwordParam){
-        password = passwordParam;
+    /*
+    * Verifica se o utilizador tem mensagens na caixa
+    */
+    public boolean hasMessages() throws InterruptedException{
+        boolean res;
+        lock.readLock();
+            res = !(this.messages.isEmpty());
+        lock.readUnlock();
+        return res;
+    } 
+    
+    /*
+    * Obtém a primeira mensagem da stack
+    */
+    public String getMessage() throws InterruptedException{
+        String s;
+        lock.writeLock();
+            s = this.messages.remove();
+        lock.writeUnlock();
+        return s;
+    }
+    
+    /*
+    * Adiciona uma mensagem a caixa do utilizador
+    */
+    public void addMessage(String s) throws InterruptedException{
+        lock.writeLock();
+            this.messages.add(s);
+        lock.writeUnlock();
     }
     
     public Utilizador clone(){

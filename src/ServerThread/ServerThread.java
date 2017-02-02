@@ -44,32 +44,49 @@ public class ServerThread extends Thread {
         writeToClient = new PrintWriter(clientSocket.getOutputStream(), true);
     }
     
+    /**
+     *
+     * Função que executa aquando da iniciação da Thread;
+     * 
+     */
+    @Override
     public void run(){
-        String m = null;
+        String m;
         try {
+            //Imprime o menu do servidor para o client;
             this.imprimeMenu();
+            //Leitura do canal;
             while((m=readFromClient.readLine())!=null){
                 try{
+                    //Intrepertadores diferentes caso o utilizador está logado ou não;
                     if(!userLoggedIn)
                         loggedOutInterpreter(Integer.parseInt(m));
                     else
                         loggedInInterpreter(Integer.parseInt(m));
+                    //No final de cada interpretação é impresso o menu para o client;
                     this.imprimeMenu();
                 } catch(NumberFormatException e) {
-                    writeToClient.println("Erro de input");; 
+                    writeToClient.println("Erro de input"); 
                 }
             }
+            //Caso o canal seja fechado pelo client, e houver um utilizador logado, faz o logout;
             if(userLoggedIn)
                 this.logoutUtilizador();
+            ld.presisteLeiloes();
+            ld.presisteUtilizadores();
+            //Fecha o socket;
             clientSocket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
     
+    /*
+    *
+    * Função de impressão do menu para o client;
+    * Existem menus diferentes caso o utilizador está logado ou não;   
+    */
     public void imprimeMenu(){
         writeToClient.println("--------------------------");        
         if(!userLoggedIn){
@@ -90,11 +107,14 @@ public class ServerThread extends Thread {
         writeToClient.println("|[9]Sair                 |");
         writeToClient.println("--------------------------");
     }
+    
     /*
-    *Intrepertador para menu de utilizador não logado
+    *Intrepertador para o menu de utilizador não logado
     */
     public void loggedOutInterpreter(int opt) throws IOException, InterruptedException{
+        //Switch para interpretar a opção recebida pelo client;
         switch(opt){
+            //Registar
             case 1:
                 writeToClient.println("Username:");
                 String username = readFromClient.readLine();
@@ -104,6 +124,7 @@ public class ServerThread extends Thread {
                 int tipo = Integer.parseInt(readFromClient.readLine());
                 writeToClient.println((this.registaUtilizador(username, password, (tipo==1 ? true : false)) ? "Registo efetuado com sucesso" : "Erro no registo"));
                 break;
+            //Login
             case 2:
                 writeToClient.println("Username:");
                 String usernameLogin = readFromClient.readLine();
@@ -111,6 +132,7 @@ public class ServerThread extends Thread {
                 String passwordLogin = readFromClient.readLine();
                 writeToClient.println((this.loginUtilizador(usernameLogin, passwordLogin) ? "Login efetuado com sucesso" : "Username ou password errados"));
                 break;
+            //Sair
             case 9:
                 clientSocket.close();
                 break;
@@ -193,7 +215,7 @@ public class ServerThread extends Thread {
     }
     
     /*
-    * Função para fazer o login de um utilizador no sistema (Aqui pode executar concorrentemente
+    * Função para fazer o login de um utilizador no sistema;
     */
     public boolean loginUtilizador(String username, String password) throws InterruptedException, IOException{
         boolean resultado=false;
@@ -206,75 +228,28 @@ public class ServerThread extends Thread {
     }
     
     /*
-    * Faz o logout do utilizador
+    * Faz o logout do utilizador;
     */
-    public boolean logoutUtilizador(){
+    public boolean logoutUtilizador() throws InterruptedException{
         if(ld.logoutUtilizador(this.user))
             userLoggedIn = false;
         return true;
     }
     
-    public Leilao criaLeilao(float value, String desc) throws IOException{
-        return ld.criaLeilao(value, desc, this.user);
+    /*
+    * Cria um leilão;
+    */
+    public Leilao criaLeilao(float value, String desc) throws IOException, InterruptedException{
+        if(!this.user.getTipo())
+            return ld.criaLeilao(value, desc, this.user);
+        else
+            return null;
     }
 
+    /*
+    * Licita num dado leilão;
+    */
     public boolean licitaLeilao(Leilao leiA, float value) throws InterruptedException{
         return ld.licitaLeilao(leiA, value, this.user);
     }
 }
-
-/*
-    public boolean loginUtilizador(String username, String password) throws InterruptedException{
-        Utilizador userAux;
-        boolean resultado = false;
-        //Verifica se o utilizador e password estão corretos  
-        lock.lock();
-            try{
-                while(isLocked)
-                    reading.await();
-                isLocked = true;
-                if(utilizadores.containsKey(username)){
-                   userAux = utilizadores.get(username);
-                   //Verifica se a password é correta
-                   if(userAux.getPassword().equals(password)){
-                        this.user = userAux;
-                        this.userLoggedIn = true;
-                        resultado = true;
-                    }
-                }
-                isLocked = false;
-                writing.signalAll(); // Aqui só acorda 1 pois só 1 escreve de cada vez
-            } finally{
-                lock.unlock();
-            }
-        return resultado;
-    }
-    public boolean logoutUtilizador(){
-        if(userLoggedIn)
-            userLoggedIn = false;
-        return true;
-    }
-    public boolean registaUtilizador(String username, String password, boolean tipo) throws IOException, InterruptedException{
-        boolean resultado=false;
-        //Verifica se o utilizador já existe
-        if(!utilizadores.containsKey(username)){
-            //Cria o utilizador
-            Utilizador user = new Utilizador(username, password, tipo);
-            //Acesso único ao map para poder adicionar o utilizador
-            lock.lock();
-            try{
-                while(isLocked)
-                    writing.await();
-                isLocked = true;
-                utilizadores.put(username, user);
-                Thread.sleep(3000);
-                isLocked=false;
-                reading.signalAll();
-            } finally{
-                lock.unlock();
-            }
-        }
-        
-        return resultado;
-    }
-*/
